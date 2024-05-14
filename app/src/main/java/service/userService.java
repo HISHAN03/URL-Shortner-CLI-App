@@ -31,11 +31,21 @@ public class userService {
     }
 
 
-    public Boolean loginUser(){
-        Optional<user> foundUser = userList.stream().filter(user1 -> {
-            return user1.getName().equals(user.getName());
-        }).findFirst();
-        return foundUser.isPresent();
+    public Boolean loginUser(user loginUser) {
+        Optional<user> foundUser = userList.stream()
+                .filter(u -> u.getName().equals(loginUser.getName()))
+                .findFirst();
+        if (foundUser.isPresent()) {
+            if (foundUser.get().getPassword().equals(loginUser.getPassword())) {
+                user = foundUser.get();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Boolean isLogged() {
+        return user != null; // Check if there is a logged-in user
     }
 
 
