@@ -1,6 +1,7 @@
 package entities;
 
 public class URLMapping {
+
     private String longURL;
     private String shortURL;
 
@@ -8,6 +9,8 @@ public class URLMapping {
         this.longURL = longURL;
         this.shortURL = shortURL;
     }
+
+    public URLMapping() { }
 
     public String getLongURL() {
         return longURL;
@@ -24,4 +27,5 @@ public class URLMapping {
     public void setShortURL(String shortURL) {
         this.shortURL = shortURL;
     }
+
 }

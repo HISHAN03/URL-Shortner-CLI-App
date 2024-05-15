@@ -2,7 +2,6 @@ package entities;
 
 public class user {
 
-
     private String name;
     private String password;
 

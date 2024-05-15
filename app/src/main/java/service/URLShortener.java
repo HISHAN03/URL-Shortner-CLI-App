@@ -1,28 +1,38 @@
 package service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import entities.URLMapping;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 public class URLShortener {
 
-    private HashMap<String, String> keyMap; // key-url map
-    private HashMap<String, String> valueMap; // url-key map
-    private String domain; // Domain name for short URLs
-    private char[] myChars; // Character set for generating short URLs
-    private Random myRand; // Random object for generating random integers
-    private int keyLength; // Length of the generated short URL key
+    private HashMap<String, String> keyMap;
+    private HashMap<String, String> valueMap;
+    private String domain;
+    private char[] myChars;
+    private Random myRand;
+    private int keyLength;
+    private ObjectMapper objectMapper;
+    private final String URL_FILE_PATH = "app/src/main/java/localDb/urls.json";
 
-
-    public URLShortener() {
+    public URLShortener() throws IOException {
         keyMap = new HashMap<>();
         valueMap = new HashMap<>();
         myRand = new Random();
-        keyLength = 6; // Default length for short URL key
+        keyLength = 6;
         myChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
         domain = "http://tinyurl.com/";
+        objectMapper = new ObjectMapper();
+        loadURLMappingsFromFile();
     }
 
-    public String shortenURL(String longURL) {
+    public String shortenURL(String longURL) throws IOException {
         String shortURL = "";
         if (validateURL(longURL)) {
             longURL = sanitizeURL(longURL);
@@ -30,15 +40,12 @@ public class URLShortener {
                 shortURL = domain + valueMap.get(longURL);
             } else {
                 shortURL = domain + getKey();
-                keyMap.put(shortURL, longURL);
-                valueMap.put(longURL, shortURL);
+                keyMap.put(shortURL.replace(domain, ""), longURL);
+                valueMap.put(longURL, shortURL.replace(domain, ""));
+                saveURLMappingToFile(new URLMapping(longURL, shortURL));
             }
         }
         return shortURL;
-    }
-
-    public String expandURL(String shortURL) {
-        return keyMap.getOrDefault(shortURL.replace(domain, ""), "Short URL not found.");
     }
 
     private String getKey() {
@@ -57,7 +64,7 @@ public class URLShortener {
     }
 
     private boolean validateURL(String url) {
-        // You can implement URL validation logic here if needed
+        // logic needs to be implemented
         return true;
     }
 
@@ -71,11 +78,17 @@ public class URLShortener {
         return url;
     }
 
+    private void saveURLMappingToFile(URLMapping urlMapping) throws IOException {
+        List<URLMapping> urlMappings = objectMapper.readValue(new File(URL_FILE_PATH), new TypeReference<List<URLMapping>>() {});
+        urlMappings.add(urlMapping);
+        objectMapper.writeValue(new File(URL_FILE_PATH), urlMappings);
+    }
 
-
-
-
-
-
-
+    private void loadURLMappingsFromFile() throws IOException {
+        List<URLMapping> urlMappings = objectMapper.readValue(new File(URL_FILE_PATH), new TypeReference<List<URLMapping>>() {});
+        for (URLMapping urlMapping : urlMappings) {
+            keyMap.put(urlMapping.getShortURL().replace(domain, ""), urlMapping.getLongURL());
+            valueMap.put(urlMapping.getLongURL(), urlMapping.getShortURL().replace(domain, ""));
+        }
+    }
 }
